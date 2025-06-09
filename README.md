@@ -34,9 +34,9 @@ Download [SportsMOT](https://github.com/MCG-NJU/SportsMOT), [DanceTrack](https:/
 
 ## Detectors and detections
 
-Download the YOLOX object detetor weights for [SportsMOT](), [DanceTrack]() and [MOT17](), and place them inside the detection_models/ folder.
+Download the YOLOX object detetor weights for [SportsMOT](https://github.com/MCG-NJU/MixSort?tab=readme-ov-file#model-zoo), [DanceTrack](https://github.com/DanceTrack/DanceTrack/blob/main/ByteTrack/README.md) and [MOT17](https://github.com/FoundationVision/ByteTrack#model-zoo), and place them inside the detection_models/ folder.
 
-Place the [SoccerNet-tracking 2022] oracle detections as well as your own custom detections inside the custom_detections/ folder. Please use the same format as SoccerNet detections.
+Place the [SoccerNet-tracking 2022](https://www.soccer-net.org/data) oracle detections as well as your own custom detections inside the custom_detections/ folder. Please use the same format as SoccerNet detections.
 
 ## Evaluation
 Run the script the get the tracking output and then use [TrackEval]() to obtain the performance numbers.
@@ -50,5 +50,4 @@ DATASET can be: <i>sportsmot, dancetrack, soccernet, mot17.</i>
 ./scripts/run_demo.sh ${DATA_PATH} ${DET_TYPE} ${DET_PATH}
 ```
 DATA_PATH is the path to your data (frames). DET_TYPE can be <i>model</i> or <i>custom</i>/ DET_PATH is the path to your object detection model or a text file to your custom detections.
-
 
