@@ -1,8 +1,7 @@
 # McByte installation
 
-Installation might seem long, but is pretty straightforward. For the smooth experience, please follow the exact order of the instructions.
+The installation is pretty straightforward. For the smooth experience, please follow the exact order of the instructions.
 
-<br/>
 
 ## Versioning
 
@@ -10,7 +9,6 @@ This installation has been tested and works well on Linux with <b>CUDA 11.6</b> 
 Please have these two installed and enabled/loaded first.<br/>
 We also recommend using the same versions of the other packages and libraries as specified below.
 
-<br/>
 
 ## Virtual environment
 
@@ -23,7 +21,6 @@ conda create -n mcbyte python=3.9
 conda activate mcbyte
 ```
 
-<br/>
 
 ## Main tracker installation
 
@@ -46,6 +43,7 @@ pip3 install cython; pip3 install 'git+https://github.com/cocodataset/cocoapi.gi
 pip3 install cython_bbox
 pip install --upgrade numpy==1.23
 ```
+<i>(In case see an error in red about pip's dependency resolver, do not worry about it, you will be able to proceed and still finish the installation and run Mcbyte)</i>
 
 Make directory for the pretrained detector ([YOLOX](https://github.com/Megvii-BaseDetection/YOLOX), already installed) models:
 ```
@@ -60,14 +58,13 @@ Download the following pre-trained models from their original sources:
 Place them in the <i>pretrained</i> folder.<br/>
 If you cannot reach some of these models, then please see the last section of this page.
 
-<br/>
 
 ## Mask propagation installation
 
 Install the temporally propagated segmentation mask functionality ([Cutie](https://github.com/hkchengrex/Cutie/tree/main)) as follows:
 
 ```
-cd Cutie
+cd Cutie # Cutie inside McByte folder
 pip install -e .
 ```
 
@@ -85,15 +82,6 @@ python cutie/utils/download_models.py
 ```
 If you cannot reach some of these models, then please see the last section of this page.
 
-
-Verify if Cutie works:
-```
-python scripting_demo_add_del_objects.py
-```
-(Outputs in ./examples 00000.png to 00015.png)
-
-<br/>
-
 ## Image segmentation mask installation
 
 Install the image segmentation mask functionality ([SAM](https://github.com/facebookresearch/segment-anything)) as follows:
@@ -107,7 +95,12 @@ cd ..
 ```
 If you cannot reach this model, then please see the last section of this page.
 
-<br/>
+## One more step for versioning consistency
+If running McByte gives you an error about Numpy 2.0 or higher, run this line one more time:
+```
+ pip install --upgrade numpy==1.23
+```
+It might happen that Cutie or SAM installation updates this version by default, after running this line for the first time above, hence you need to run it again. (The same remark with the error in red applies here.)
 
 ## Pretrained model backups.
 

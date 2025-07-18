@@ -8,7 +8,7 @@
 ><u>Tomasz Stanczyk</u>, Seongro Yoon, Francois Bremond
 >
 >[*arxiv 2506.01373*](https://arxiv.org/abs/2506.01373)
-<br/>
+
 
 ## Abstract
 Multi-object tracking (MOT) is essential for sports analytics, enabling performance evaluation and tactical insights. However, tracking in sports is challenging due to fast movements, occlusions, and camera shifts. Traditional tracking-by-detection methods require extensive tuning, while segmentation-based approaches struggle with track processing. We propose McByte, a tracking-by-detection framework that integrates temporally propagated segmentation mask as an association cue to improve robustness without per-video tuning. Unlike many existing methods, McByte does not require training, relying solely on pre-trained models and object detectors commonly used in the community. Evaluated on SportsMOT, DanceTrack, SoccerNet-tracking 2022 and MOT17, McByte demonstrates strong performance across sports and general pedestrian tracking. Our results highlight the benefits of mask propagation for a more adaptable and generalizable MOT approach.
@@ -16,7 +16,6 @@ Multi-object tracking (MOT) is essential for sports analytics, enabling performa
 <p align="center">
   <img src="media/CVPRW25_main_diagram.png" width="100%" alt="CVPR poster main diagram">
 </p>
-<br/>
 
 ## Added gradually
 
@@ -29,11 +28,10 @@ Multi-object tracking (MOT) is essential for sports analytics, enabling performa
 - [ ] Numerical evaluation instructions
 - [ ] More optimized and engineered version
 
-<br/>
 
 ## Installation and models
 
-Please follow the complete guideline in [INSTALLATION.md](https://github.com/tstanczyk95/McByte/INSTALLATION.md).
+Please follow the complete guideline in [INSTALLATION.md](https://github.com/tstanczyk95/McByte/blob/main/INSTALLATION.md).
 <br/>
 
 ## 🔥 Demo 🔥
@@ -57,24 +55,22 @@ For a complete list of arguments, run:
 ```
 python tools/demo_track.py --help
 ```
-<br/>
 
 ## Logging funcionality 🔍👀
 During the run, a logging file will be created and located in: <i>McByte/YOLOX_outputs/yolox_x_mix_det/track_vis/date_time_stamp/logging_info.txt</i>.<br/>
 This file contains information per frame with all the tracklets, detections, their confidence scores, tracklet states, associations and cost matrix per step, before and after the mask update. Together with the detection per frame output and traklets-before-Kalman-filter output (<i>--vis_type=full</i>, default, see above), it is a powerful tool to go deep into the details, verify fine-grained behaviour of the tracker and associations per frame, and to further adjust the algorithm to your needs if needed (e.g. if you want to change yourself some hyper-parameters, etc.). This functionality as a whole was very useful in developing McByte and thus we hope it will serve the interested users as well. 
-<br/><br/>
+<br/>
 
 
 ## Mask resolution and memory
 In case you face issues with memory (e.g. GPU limitations), you can reduce the mask internal representation size of the mask temporal propagator component. <br/><br/>
 In order to do that, go to the file: <i>McByte/Cutie/cutie/config/eval_config.yaml</i>. Find the parameter <i>max_internal_size</i> (line 23). By default it is set as -1 which means that the mask internal representation (used to compute the final propagation mask) will have the same dimensions as your input frames/video. You can decrease the size, by updating the -1 with some fraction of the lower size of your input. E.g. If your input has dimensions of 1920x1080, you can try with 540 (50% of 1080), which will reduce the total size by the factor of 4 (2x smaller weight, 2x smaller width). Consider also less natural numbers, e.g. sqrt(2) ~ 1.41, thus in this case, setting the number as 1080/1.41 ~ 766 (total size reduced by the factor of 2).<br/><br/>
 Note that as the internal representation of mask becomes smaller, the mask accuracy might decrease. Although mask is used as an association cue in McByte, and small inaccuracies are handled withing the tracker design, significant size changes might lead to overall decreased performace, particularly with small objects and crowds.
-<br/><br/>
+<br/>
 
 ## Acknowledgement
 A large part of the McByte code was borrwed from [ByteTrack](https://github.com/FoundationVision/ByteTrack), [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) and [Cutie](https://github.com/hkchengrex/Cutie). [SAM](https://github.com/facebookresearch/segment-anything) model was smoothly incorporated and some additional parts were borrowed from [BoT-SORT](https://github.com/NirAharon/BoT-SORT). Many thanks to all the authors for their amazing work! 
 
-<br/>
 
 ## Usage and citation
 
