@@ -95,12 +95,19 @@ cd ..
 ```
 If you cannot reach this model, then please see the last section of this page.
 
-## One more step for versioning consistency
+## Error handling
+### Numpy still as >= 2.0
 If running McByte gives you an error about Numpy 2.0 or higher, run this line one more time:
 ```
  pip install --upgrade numpy==1.23
 ```
 It might happen that Cutie or SAM installation updates this version by default, after running this line for the first time above, hence you need to run it again. (The same remark with the error in red applies here.)
+### Unrecognized function arguments
+If you modify function signatures or pull an updated version, and it will result in an error of unrecognized arguments, please run the setup install instruction again in the main McByte folder:
+```
+python3 setup.py develop
+```
+It will adjsut the running settings to the new signatures, etc.
 
 ## Pretrained model backups.
 

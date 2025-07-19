@@ -384,7 +384,7 @@ class McByteTracker(object):
         return matches, u_track, u_detection, dists_cp
 
 
-    def update(self, output_results, img_info, img_size, prediction_mask, tracklet_mask_dict, mask_avg_prob_dict, frame_img, vis_type, oracle_detections=False):
+    def update(self, output_results, img_info, img_size, prediction_mask, tracklet_mask_dict, mask_avg_prob_dict, frame_img, vis_type, dets_from_file=False):
         self.frame_id += 1
         activated_starcks = []
         refind_stracks = []
@@ -406,7 +406,7 @@ class McByteTracker(object):
             bboxes = output_results[:, :4]  # x1y1x2y2
         img_h, img_w = img_info[0], img_info[1]
         
-        if not oracle_detections:
+        if not dets_from_file:
             scale = min(img_size[0] / float(img_h), img_size[1] / float(img_w))
             bboxes /= scale
 

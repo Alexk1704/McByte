@@ -1,6 +1,6 @@
 # [CVPRW 2025] McByte official implementation code.
 
-## <i>Please note: This is the release of the first, academic version of McByte. More optimized and engineered version is coming soon. Stay tuned!</i> ##
+## <i>Please note: This is the release of the first, academic version of McByte, with a <ins>runnable demo included</ins>. More optimized and engineered version is coming soon. Stay tuned!</i> ##
 <br/>
 
 >**[No Train Yet Gain: Towards Generic Multi-Object Tracking in Sports and Beyond](https://openaccess.thecvf.com/content/CVPR2025W/CVSPORTS/html/Stanczyk_No_Train_Yet_Gain_Towards_Generic_Multi-Object_Tracking_in_Sports_CVPRW_2025_paper.html)**
@@ -24,7 +24,7 @@ Multi-object tracking (MOT) is essential for sports analytics, enabling performa
 - [x] Installation and setting instructions
 - [x] 🔥 Directly usable demo 🔥
 - [ ] Video stream processing
-- [ ] Using custom/oracle detections
+- [x] Using custom/oracle detections
 - [ ] Numerical evaluation instructions
 - [ ] More optimized and engineered version
 
@@ -36,7 +36,7 @@ Please follow the complete guideline in [INSTALLATION.md](https://github.com/tst
 
 ## 🔥 Demo 🔥
 
-### Simply run the command:
+### Simply run the command - no training required:
 ```
 python tools/demo_track.py --path path/to/your/frames
 ```
@@ -46,8 +46,9 @@ Output will be located in: <i>McByte/YOLOX_outputs/yolox_x_mix_det/track_vis/dat
 **More arguments:**
 - <i>--vis_type</i> - visualization type, it enables saving separately: frames with masks and tracklets, frames with detections and frames with tracklets before Kalman filter update. Skipping the visualization, while keeing the text (records) output is also possible. Recognized values: <i>full</i>, <i>basic</i>, <i>no_vis</i>. Default: <i>full</i>.
 - <i>--start_frame_no</i> - number of the first starting frame (assuming that your frames are ordered). E.g., if you want to start tracking from the middle of the sequence rather than from the beginning. Default: 1.
-- <i>-f</i> | <i>--exp_file</i> - the name of the YOLOX experiment (architecture and parameters) file. Although several ones are possible, we recommend staying with the default: <i>exps/example/mot/yolox_x_mix_det.py</i>. 
+- <i>-f</i> | <i>--exp_file</i> - the name of the YOLOX detector experiment (architecture and parameters) file. Although several ones are possible, we recommend staying with the default: <i>exps/example/mot/yolox_x_mix_det.py</i>. 
 - <i>-c</i> | <i>--ckpt</i> - the name of the object detector pretrained weights file (the checkpoint). It must match the architecture from the experiment file above (e.g. YOLOX X). Default: <i>pretrained/yolox_x_sports_mix.pth.tar</i>.
+- <i>det_path</i> - path to the text file with detections. Default: None. If specified, detector-related arguments will not be considered.
 
 **Additional note**: The YOLOX object detector model pretrained on [SportsMOT](https://github.com/MCG-NJU/SportsMOT) as provided by the dataset authors (used as default setting above) behaves very well on the considered sport settings - soccer, basketball, volleyball 🔥
 

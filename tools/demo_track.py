@@ -1,6 +1,7 @@
 import argparse
 import os
 import os.path as osp
+import sys
 import time
 import cv2
 import torch
@@ -33,6 +34,13 @@ def make_parser():
 
     parser.add_argument(
         "--path", help="path to images or video"
+        # e.g. datasets/SoccerNet/tracking/test/SNMOT-132/img1/
+    )
+    parser.add_argument(
+        "--det_path", 
+        default=None, 
+        # e.g. 'datasets/SoccerNet/tracking/test/SNMOT-132/det/det.txt'
+        help="path to the file with detections; if specified, [detector] related arguments (e.g. exp_file, ckpt) will not be considered"
     )
     parser.add_argument(
         "--save_result",
@@ -48,31 +56,31 @@ def make_parser():
         default="exps/example/mot/yolox_x_mix_det.py",
         # default="exps/example/mot/yolox_x_ablation.py",
         type=str,
-        help="your expriment description file",
+        help="[detector] your expriment description file",
     )
     parser.add_argument(
         "-c", "--ckpt",
         default="pretrained/yolox_x_sports_mix.pth.tar", 
         # default="pretrained/bytetrack_ablation.pth.tar", 
         type=str, 
-        help="ckpt for eval"
+        help="[detector] pretrained model weight (checkpoint) for eval"
     )
-    parser.add_argument("-expn", "--experiment-name", type=str, default=None, help="alternative to --exp_file")
-    parser.add_argument("--experiment_model_name", type=str, default=None, help="alternative to --exp_file")
+    parser.add_argument("-expn", "--experiment-name", type=str, default=None, help="name of the parent output folder (default is the name of the exp_file)")
+    parser.add_argument("--experiment_model_name", type=str, default=None, help="[detector] alternative to --exp_file")
     parser.add_argument("--fps", default=30, type=int, help="frame rate (fps)")
     parser.add_argument(
         "--fp16",
         dest="fp16",
         default=True,
         action="store_true",
-        help="Adopting mix precision evaluating.",
+        help="[detector] Adopting mix precision evaluating.",
     )
     parser.add_argument(
         "--fuse",
         dest="fuse",
         default=True,
         action="store_true",
-        help="Fuse conv and bn for testing.",
+        help="[detector] Fuse conv and bn for testing.",
     )
     
     # tracking args
@@ -156,9 +164,43 @@ class Predictor(object):
             )
             #logger.info("Infer time: {:.4f}s".format(time.time() - t0))
         return outputs, img_info
+    
+
+def get_detections(img, frame_id, det_list):   
+    img_info = {"id": 0}
+    if isinstance(img, str):
+        img_info["file_name"] = osp.basename(img)
+        img = cv2.imread(img)
+    else:
+        img_info["file_name"] = None
+
+    height, width = img.shape[:2]
+    img_info["height"] = height
+    img_info["width"] = width
+    img_info["raw_img"] = img
+
+    dets_per_frame = [d for d in det_list if d.split(",")[0] == str(frame_id)]
+
+    dets_tensor = torch.zeros(len(dets_per_frame),5) # to be: x1 y1 x2 y2 conf
+
+    for i, line in enumerate(dets_per_frame):
+        det = line.split(",") # "frame_id,-1,left,top,width,height,conf,-1,-1,-1"
+
+        dets_tensor[i,0] = int(det[2])
+        dets_tensor[i,1] = int(det[3])
+        dets_tensor[i,2] = int(det[4]) + int(det[2])
+        dets_tensor[i,3] = int(det[5]) + int(det[3])
+        dets_tensor[i,4] = int(det[6])
+
+    # To adjust to the format used
+    dets_tensor = dets_tensor[None, :]
+
+    dets_array = dets_tensor.numpy()
+
+    return dets_array, img_info
 
 
-def image_demo(predictor, vis_folder, current_time, args):
+def image_demo(det_source, vis_folder, current_time, args):
     if osp.isdir(args.path):
         files = get_image_list(args.path)
     else:
@@ -177,6 +219,16 @@ def image_demo(predictor, vis_folder, current_time, args):
     if vis_type not in ['full', 'basic', 'no_vis']:
         print("[vis_type unrecognized, no visualization assumed]")
 
+    if isinstance(det_source, Predictor):
+        predictor = det_source
+        dets_from_file = False
+    elif isinstance(det_source, list):
+        det_list = det_source
+        dets_from_file = True
+    else:
+        print("[Unknown type of detection source, exiting.]")
+        sys.exit()
+
     tracker = McByteTracker(args, frame_rate=args.fps, save_folder=save_folder)
     results = []
 
@@ -191,22 +243,24 @@ def image_demo(predictor, vis_folder, current_time, args):
 
             mask_menager = MaskManager()
 
-
             for frame_id, img_path in enumerate(files, 1):
                 print("Frame {}".format(str(frame_id)))
-                outputs, img_info = predictor.inference(img_path)
+                if dets_from_file:
+                    outputs, img_info = get_detections(img_path, frame_id + args.start_frame_no-1, det_list)
+                else:
+                    outputs, img_info = predictor.inference(img_path)
+                
                 if outputs[0] is not None:
 
                     if frame_id > 1:
                         prediction, tracklet_mask_dict, mask_avg_prob_dict, prediction_colors_preserved = mask_menager.get_updated_masks(img_info, img_info_prev, frame_id, online_tlwhs, online_ids, new_tracks, removed_tracks_ids)
                     
-                    online_targets, removed_tracks_ids, new_tracks, detections_per_assoc_step, all_considered_tracklets_before_correction = tracker.update(outputs[0], [img_info['height'], img_info['width']], exp.test_size, prediction_mask=prediction, tracklet_mask_dict=tracklet_mask_dict, mask_avg_prob_dict=mask_avg_prob_dict, frame_img=img_info['raw_img'], vis_type=vis_type)
+                    online_targets, removed_tracks_ids, new_tracks, detections_per_assoc_step, all_considered_tracklets_before_correction = tracker.update(outputs[0], [img_info['height'], img_info['width']], exp.test_size, prediction_mask=prediction, tracklet_mask_dict=tracklet_mask_dict, mask_avg_prob_dict=mask_avg_prob_dict, frame_img=img_info['raw_img'], vis_type=vis_type, dets_from_file=dets_from_file)
                     online_tlwhs = []
                     online_ids = []
                     online_scores = []
                     for t in online_targets:
-                        # tlwh = t.tlwh
-                        tlwh = t.last_det_tlwh ## Extra added (in place of the commented one above)
+                        tlwh = t.last_det_tlwh
                         tid = t.track_id
                         online_tlwhs.append(tlwh)
                         online_ids.append(tid)
@@ -276,31 +330,42 @@ def main(exp, args):
 
     logger.info("Args: {}".format(args))
 
-    model = exp.get_model().to(device)
-    logger.info("Model Summary: {}".format(get_model_info(model, exp.test_size)))
-    model.eval()
-
-    if args.ckpt is None:
-        ckpt_file = osp.join(output_dir, "best_ckpt.pth.tar")
+    det_path = args.det_path
+    if det_path is not None:
+        # load detections from a file
+        with open(det_path, "r") as f_det:
+            det_list = f_det.readlines()
+        logger.info("Using detections from the file: {}".format(det_path))
+        det_source = det_list
     else:
-        ckpt_file = args.ckpt
-    logger.info("loading checkpoint")
-    ckpt = torch.load(ckpt_file, map_location="cpu")
-    # load the model state dict
-    model.load_state_dict(ckpt["model"])
-    logger.info("loaded checkpoint done.")
+        # activate detector
+        model = exp.get_model().to(device)
+        logger.info("Model Summary: {}".format(get_model_info(model, exp.test_size)))
+        model.eval()
 
-    if args.fuse:
-        logger.info("\tFusing model...")
-        model = fuse_model(model)
+        if args.ckpt is None:
+            ckpt_file = osp.join(output_dir, "best_ckpt.pth.tar")
+        else:
+            ckpt_file = args.ckpt
+        logger.info("loading checkpoint")
+        ckpt = torch.load(ckpt_file, map_location="cpu")
+        # load the model state dict
+        model.load_state_dict(ckpt["model"])
+        logger.info("loaded checkpoint done.")
 
-    if args.fp16:
-        model = model.half()  # to FP16
+        if args.fuse:
+            logger.info("\tFusing model...")
+            model = fuse_model(model)
 
-    predictor = Predictor(model, exp, device, args.fp16)
+        if args.fp16:
+            model = model.half()  # to FP16
+
+        predictor = Predictor(model, exp, device, args.fp16)
+        det_source = predictor
+
     current_time = time.localtime()
     if args.demo == "image":
-        image_demo(predictor, vis_folder, current_time, args)
+        image_demo(det_source, vis_folder, current_time, args)
     else:
         print("[No valid input mode selected (--demo=...). Tracking not performed]")
 
