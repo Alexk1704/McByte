@@ -48,7 +48,7 @@ Output will be located in: <i>McByte/YOLOX_outputs/yolox_x_mix_det/track_vis/dat
 - <i>--start_frame_no</i> - number of the first starting frame (assuming that your frames are ordered). E.g., if you want to start tracking from the middle of the sequence rather than from the beginning. Default: 1.
 - <i>-f</i> | <i>--exp_file</i> - the name of the YOLOX detector experiment (architecture and parameters) file. Although several ones are possible, we recommend staying with the default: <i>exps/example/mot/yolox_x_mix_det.py</i>. 
 - <i>-c</i> | <i>--ckpt</i> - the name of the object detector pretrained weights file (the checkpoint). It must match the architecture from the experiment file above (e.g. YOLOX X). Default: <i>pretrained/yolox_x_sports_mix.pth.tar</i>.
-- <i>det_path</i> - path to the text file with detections. Default: None. If specified, detector-related arguments will not be considered.
+- <i>--det_path</i> - path to the text file with detections. Default: None. If specified, detector-related arguments will not be considered.
 
 **Additional note**: The YOLOX object detector model pretrained on [SportsMOT](https://github.com/MCG-NJU/SportsMOT) as provided by the dataset authors (used as default setting above) behaves very well on the considered sport settings - soccer, basketball, volleyball 🔥
 
