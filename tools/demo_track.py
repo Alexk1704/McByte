@@ -14,7 +14,7 @@ from yolox.utils import fuse_model, get_model_info, postprocess
 from yolox.utils.visualize import plot_tracking, plot_tracking_basic
 from yolox.tracker.mcbyte_tracker import McByteTracker
 
-from mask_management.mask_manager import MaskManager
+from mask_propagation.mask_manager import MaskManager
 
 SAM_START_FRAME = 1
 

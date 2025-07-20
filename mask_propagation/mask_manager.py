@@ -7,9 +7,12 @@ from segment_anything import sam_model_registry, SamPredictor
 import numpy as np
 
 # Enable imports from the Cutie directory
-root = Path(__file__).parent.parent
+root = Path(__file__).parent
 _CUTIE_ROOT = root / 'Cutie'
 sys.path.append(str(_CUTIE_ROOT))
+
+# Hydra config path (relative)
+cutie_config_rel = "Cutie/cutie/config"
 
 ### Cutie ###
 from omegaconf import open_dict
@@ -50,11 +53,13 @@ class MaskManager(object):
 
         with torch.inference_mode():
             with torch.cuda.amp.autocast(enabled=True):
-                initialize(version_base='1.3.2', config_path="../Cutie/cutie/config", job_name="eval_config")
+                initialize(version_base='1.3.2', config_path=str(cutie_config_rel), job_name="eval_config")
                 cfg = compose(config_name="eval_config")
 
+                weight_path = Path(__file__).parent / "Cutie" / "weights" / "cutie-base-mega.pth"
                 with open_dict(cfg):
-                    cfg['weights'] = './Cutie/weights/cutie-base-mega.pth'
+                    cfg['weights'] = weight_path
+                    # cfg['weights'] = './mask_propagation/Cutie/weights/cutie-base-mega.pth'
 
                 # This function from Cutie must be called as in fact, it modifies (adds extra values) to cfg 
                 _ = get_dataset_cfg(cfg)

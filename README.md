@@ -5,10 +5,9 @@
 
 >**[No Train Yet Gain: Towards Generic Multi-Object Tracking in Sports and Beyond](https://openaccess.thecvf.com/content/CVPR2025W/CVSPORTS/html/Stanczyk_No_Train_Yet_Gain_Towards_Generic_Multi-Object_Tracking_in_Sports_CVPRW_2025_paper.html)**
 >
-><ins>Tomasz Stanczyk</ins>, Seongro Yoon, Francois Bremond
+>[Tomasz Stanczyk](https://www.linkedin.com/in/tomasz-stanczyk/), Seongro Yoon, Francois Bremond
 >
 >[*arxiv 2506.01373*](https://arxiv.org/abs/2506.01373)
-
 
 ## Abstract
 Multi-object tracking (MOT) is essential for sports analytics, enabling performance evaluation and tactical insights. However, tracking in sports is challenging due to fast movements, occlusions, and camera shifts. Traditional tracking-by-detection methods require extensive tuning, while segmentation-based approaches struggle with track processing. We propose McByte, a tracking-by-detection framework that integrates temporally propagated segmentation mask as an association cue to improve robustness without per-video tuning. Unlike many existing methods, McByte does not require training, relying solely on pre-trained models and object detectors commonly used in the community. Evaluated on SportsMOT, DanceTrack, SoccerNet-tracking 2022 and MOT17, McByte demonstrates strong performance across sports and general pedestrian tracking. Our results highlight the benefits of mask propagation for a more adaptable and generalizable MOT approach.
