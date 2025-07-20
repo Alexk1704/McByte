@@ -44,7 +44,7 @@ Input is a frame folder or a video file.<br/>
 Output will be located in: <i>McByte/YOLOX_outputs/yolox_x_mix_det/track_vis/date_time_stamp</i>. Folder with processed frames and a log file (see the section below) will be created. Text output file (tracking records per frame in MOT format) will be created outside the folder.
 
 **More arguments:**
-- <i>--demo</i> - demo type, input time. Recognized values: <i>image</i> (frames), <i>video</i>. Default: <i>image</i>.
+- <i>--demo</i> - demo type, input type. Recognized values: <i>image</i> (frames), <i>video</i>. Default: <i>image</i>.
 - <i>--vis_type</i> - visualization type, it enables saving separately: frames with masks and tracklets, frames with detections and frames with tracklets before Kalman filter update. Skipping the visualization, while keeing the text (records) output is also possible. Recognized values: <i>full</i> (frame/image input only), <i>basic</i>, <i>no_vis</i>. Default: <i>basic</i>.
 - <i>--start_frame_no</i> - number of the first starting frame (assuming that your frames are ordered). E.g., if you want to start tracking from the middle of the sequence rather than from the beginning. Default: 1.
 - <i>-f</i> | <i>--exp_file</i> - the name of the YOLOX detector experiment (architecture and parameters) file. Although several ones are possible, we recommend staying with the default: <i>exps/example/mot/yolox_x_mix_det.py</i>. 
