@@ -64,7 +64,7 @@ If you cannot reach some of these models, then please see the last section of th
 Install the temporally propagated segmentation mask functionality ([Cutie](https://github.com/hkchengrex/Cutie/tree/main)) as follows:
 
 ```
-cd Cutie # Cutie inside McByte folder
+cd mask_propagation/Cutie
 pip install -e .
 ```
 
@@ -86,7 +86,7 @@ If you cannot reach some of these models, then please see the last section of th
 
 Install the image segmentation mask functionality ([SAM](https://github.com/facebookresearch/segment-anything)) as follows:
 ```
-cd .. # Ensure you are in the McByte main folder now
+cd ../.. # Ensure you are in the McByte main folder now
 pip install git+https://github.com/facebookresearch/segment-anything.git
 mkdir sam_models
 cd sam_models/

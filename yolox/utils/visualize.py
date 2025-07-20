@@ -5,7 +5,7 @@
 import cv2
 import numpy as np
 
-from Cutie.gui.interactive_utils import overlay_davis
+from mask_propagation.Cutie.gui.interactive_utils import overlay_davis
 
 __all__ = ["vis"]
 
