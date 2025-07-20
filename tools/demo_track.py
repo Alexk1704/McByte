@@ -29,11 +29,11 @@ IMAGE_EXT = [".jpg", ".jpeg", ".webp", ".bmp", ".png"]
 def make_parser():
     parser = argparse.ArgumentParser("ByteTrack Demo!")
     parser.add_argument(
-        "--demo", default="image", help="demo type, eg. image, video and webcam"
+        "--demo", default="image", help="demo type, possible types: image, video"
     )
 
     parser.add_argument(
-        "--path", help="path to images or video"
+        "--path", help="path to a folder with images (frames) or to a video file"
         # e.g. datasets/SoccerNet/tracking/test/SNMOT-132/img1/
     )
     parser.add_argument(
@@ -91,7 +91,7 @@ def make_parser():
     parser.add_argument("--cmc-method", default="orb", type=str, help="camera motion compensation method: files (Vidstab GMC) | orb | ecc")
 
     parser.add_argument("--start_frame_no", type=int, default=1, help="starting frame file number (counting from 1)")
-    parser.add_argument("--vis_type", default="full", type=str, help="visualization type, with OR without detections and tracklets before Kalman filter update OR no visualization: full | basic | no_vis")
+    parser.add_argument("--vis_type", default="basic", type=str, help="visualization type, with OR without detections and tracklets before Kalman filter update OR no visualization: full | basic | no_vis")
 
     return parser
 
@@ -313,7 +313,120 @@ def image_demo(det_source, vis_folder, current_time, args):
         logger.info(f"save results to {res_file}")
 
 
+def video_demo(det_source, vis_folder, current_time, args):
+    ### For the info logging file save ###
+    timestamp = time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
+    save_folder = osp.join(vis_folder, timestamp)
+    os.makedirs(save_folder, exist_ok=True)
+    ### / ###
 
+    cap = cv2.VideoCapture(args.path)
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)  # float
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    save_path = osp.join(save_folder, args.path.split("/")[-1])
+    logger.info(f"video save_path is {save_path}")
+    vid_writer = cv2.VideoWriter(
+        save_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (int(width), int(height))
+    )
+
+    vis_type = args.vis_type
+    if vis_type == 'full':
+        print("[Visualization of the detections and traclets before KF update is only available for frame-based (image) imput. Doing basic visualization instead]")
+        vis_type = 'basic'
+    if vis_type not in ['basic', 'no_vis']:
+        print("[vis_type unrecognized, no visualization assumed]")
+
+    if isinstance(det_source, Predictor):
+        predictor = det_source
+        dets_from_file = False
+    elif isinstance(det_source, list):
+        det_list = det_source
+        dets_from_file = True
+    else:
+        print("[Unknown type of detection source, exiting.]")
+        sys.exit()
+
+    tracker = McByteTracker(args, frame_rate=args.fps, save_folder=save_folder)
+    results = []
+
+    # (These 2 lines + required indents) For Cutie
+    with torch.inference_mode():
+        with torch.cuda.amp.autocast(enabled=True):
+
+            prediction = None
+            tracklet_mask_dict = None
+            mask_avg_prob_dict = None
+            prediction_colors_preserved = None
+
+            mask_menager = MaskManager()
+
+            frame_id = 1
+            while True:
+                ret_val, frame = cap.read()
+                if frame_id < args.start_frame_no:
+                    frame_id += 1
+                    continue
+                if not ret_val:
+                    break
+
+                print("Frame {}".format(str(frame_id)))
+                if dets_from_file:
+                    outputs, img_info = get_detections(frame, frame_id, det_list)
+                else:
+                    outputs, img_info = predictor.inference(frame)
+                
+                if outputs[0] is not None:
+
+                    if frame_id - args.start_frame_no + 1 > 1:
+                        prediction, tracklet_mask_dict, mask_avg_prob_dict, prediction_colors_preserved = mask_menager.get_updated_masks(img_info, img_info_prev, frame_id - args.start_frame_no + 1, online_tlwhs, online_ids, new_tracks, removed_tracks_ids)
+                    
+                    online_targets, removed_tracks_ids, new_tracks, _, _ = tracker.update(outputs[0], [img_info['height'], img_info['width']], exp.test_size, prediction_mask=prediction, tracklet_mask_dict=tracklet_mask_dict, mask_avg_prob_dict=mask_avg_prob_dict, frame_img=img_info['raw_img'], vis_type=vis_type, dets_from_file=dets_from_file)
+                    online_tlwhs = []
+                    online_ids = []
+                    online_scores = []
+                    for t in online_targets:
+                        tlwh = t.last_det_tlwh
+                        tid = t.track_id
+                        online_tlwhs.append(tlwh)
+                        online_ids.append(tid)
+                        online_scores.append(t.score)
+                        # save results
+                        results.append(
+                            f"{frame_id},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f},{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
+                        )
+
+                    if vis_type == 'basic':
+                        online_im, _, _ = plot_tracking_basic(
+                            img_info['raw_img'], online_tlwhs, online_ids, frame_id=frame_id, prediction_mask=prediction_colors_preserved
+                        )
+                    else: # 'no_vis'
+                        pass
+                else:
+                    online_im = img_info['raw_img']
+
+                img_info_prev = img_info
+
+                if args.save_result:
+                    timestamp = time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
+                    save_folder = osp.join(vis_folder, timestamp)
+                    os.makedirs(save_folder, exist_ok=True)
+                    vid_writer.write(online_im)                   
+
+                ch = cv2.waitKey(1)
+                if ch == 27 or ch == ord("q") or ch == ord("Q"):
+                    break
+
+                frame_id += 1
+
+    vid_writer.release()        
+
+    if args.save_result:
+        res_file = osp.join(vis_folder, f"{timestamp}.txt")
+        with open(res_file, 'w') as f:
+            f.writelines(results)
+        logger.info(f"save results to {res_file}")
 
 
 def main(exp, args):
@@ -366,8 +479,10 @@ def main(exp, args):
     current_time = time.localtime()
     if args.demo == "image":
         image_demo(det_source, vis_folder, current_time, args)
+    elif args.demo == "video":
+        video_demo(det_source, vis_folder, current_time, args)
     else:
-        print("[No valid input mode selected (--demo=...). Tracking not performed]")
+        print("[No valid input mode selected (--demo=...). Tracking not performed. Available modes: image, video]")
 
 
 if __name__ == "__main__":

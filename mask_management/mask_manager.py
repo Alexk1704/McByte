@@ -160,14 +160,14 @@ class MaskManager(object):
 
             # Needed when adding new masks in the next frames. Thus needs to be updated before adding and after deleting a mask(s)
             self.current_object_list_cutie = list(range(1, self.num_objects+1))
-            self.last_object_number_cutie = max(self.current_object_list_cutie)
+            self.last_object_number_cutie = max(self.current_object_list_cutie, default=0)
 
             # Not all the BBs get their masks instantly created. Hence using new_tracks_id.
             self.tracklet_mask_dict = dict(zip(new_tracks_id, range(1, self.num_objects+1)))
             
             # A dictionary with id color allocated to each mask. Mask ids will change/shift after removal(s), yet the color ids will stay the same
             self.mask_color_dict = dict(zip(range(1, self.num_objects+1), range(1, self.num_objects+1)))
-            self.mask_color_counter = max(list(self.mask_color_dict.values()))
+            self.mask_color_counter = max(list(self.mask_color_dict.values()), default=0)
 
             # Perform Cutie propagation (frame-by-frame)
             mask_torch = index_numpy_to_one_hot_torch(mask, self.num_objects+1).to(self.device)
@@ -236,7 +236,7 @@ class MaskManager(object):
 
                 # Convert masks!
                 mask_extra = np.zeros(masks[0].shape)
-                max_mask_number = max(self.tracklet_mask_dict.values())
+                max_mask_number = max(self.tracklet_mask_dict.values(), default=0)
 
                 new_masks_numbers = []
                 new_object_numbers = []
@@ -451,7 +451,7 @@ def update_tracklet_mask_dict_after_mask_removal(tracklet_mask_dict, mask_color_
     # Part 2/2: Update the mask ids in mask_color_dict
 
     # Saved and returned in case the last element (with the highest number) was deleted
-    mask_color_counter = max(list(mask_color_dict.values()))
+    mask_color_counter = max(list(mask_color_dict.values()), default=0)
 
     entries_to_be_removed = []
     decrement_mask_id_dict = {}
