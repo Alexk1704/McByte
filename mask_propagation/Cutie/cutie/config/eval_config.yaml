@@ -20,7 +20,8 @@ flip_aug: False
 # this parameter is added for the sole purpose for the GUI in the current codebase
 # InferenceCore will downsize the input and restore the output to the original size if needed
 # if you are using this code for some other project, you can also utilize this parameter
-max_internal_size: -1
+max_internal_size: 766
+# 1920x1080 (orig.), set to fraction if OOM: (1920/1.41=1362,1080/1.41=766)
 
 # these parameters, when set, override the dataset's default; useful for debugging
 image_directory: null

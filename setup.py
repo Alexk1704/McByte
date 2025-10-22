@@ -13,19 +13,25 @@ assert torch_ver >= [1, 3], "Requires PyTorch >= 1.3"
 
 
 def get_extensions():
-    this_dir = path.dirname(path.abspath(__file__))
-    extensions_dir = path.join(this_dir, "yolox", "layers", "csrc")
+    # this_dir = path.dirname(path.abspath(__file__))
+    # extensions_dir = path.join(this_dir, "yolox", "layers", "csrc")
 
-    main_source = path.join(extensions_dir, "vision.cpp")
-    sources = glob.glob(path.join(extensions_dir, "**", "*.cpp"))
-
-    sources = [main_source] + sources
+    # main_source = path.join(extensions_dir, "vision.cpp")
+    # sources = glob.glob(path.join(extensions_dir, "**", "*.cpp"))
+    # sources = [main_source] + sources
+    
+    # include_dirs = [extensions_dir]
+    
     extension = CppExtension
+
+    sources = ['yolox/layers/csrc/vision.cpp', 
+               'yolox/layers/csrc/cocoeval/cocoeval.cpp']
+    
+    include_dirs = ['yolox/layers/csrc']
+    
 
     extra_compile_args = {"cxx": ["-O3"]}
     define_macros = []
-
-    include_dirs = [extensions_dir]
 
     ext_modules = [
         extension(
